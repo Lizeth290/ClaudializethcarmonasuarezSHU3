@@ -4,7 +4,10 @@ import cors from 'cors';
 import connectDB from './config/db.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 
-// (Añadiremos más rutas aquí en los siguientes pasos)
+// Importar rutas
+import authRoutes from './routes/authRoutes.js';
+import itemRoutes from './routes/itemRoutes.js';
+import externalRoutes from './routes/externalRoutes.js';
 
 // Configuración inicial
 dotenv.config();
@@ -20,12 +23,19 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rutas de la API (por ahora solo una de prueba)
+// Rutas de la API
 app.get('/api', (req, res) => {
   res.json({ message: 'API funcionando correctamente' });
 });
 
-// (Aquí usaremos las rutas)
+// Rutas de autenticación
+app.use('/api/users', authRoutes);
+
+// Rutas de items (CRUD)
+app.use('/api/items', itemRoutes);
+
+// Rutas de API externa
+app.use('/api/external', externalRoutes);
 
 
 // Middlewares de manejo de errores (DEBEN IR AL FINAL)

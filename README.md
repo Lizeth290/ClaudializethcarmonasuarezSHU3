@@ -1,79 +1,126 @@
-Aplicación FullStack con Seguridad, Docker y Web Services (SHU3)
+# Aplicación FullStack con Seguridad, Docker y Web Services (SHU3)
 
-Este es un proyecto de aplicación web FullStack (MERN) que implementa mecanismos de seguridad con JWT, consumo de web services de terceros y un API REST propio (CRUD), todo orquestado con Docker.
+Aplicación web FullStack desarrollada con stack MERN (MongoDB, Express, React, Node.js). Implementa autenticación JWT, API REST con CRUD protegido y consumo de servicios web externos, todo orquestado con Docker.
 
-Repositorio GitHub: https://github.com/Lizeth290/ClaudializethcarmonasuarezSHU3
+**Repositorio**: https://github.com/Lizeth290/ClaudializethcarmonasuarezSHU3
 
-🚀 Características
+## 🚀 Características
 
-Frontend: React con Vite y Tailwind CSS.
+- **Frontend**: React + Vite + Tailwind CSS
+- **Backend**: Node.js + Express + Mongoose
+- **Base de Datos**: MongoDB 4.4
+- **Contenerización**: Docker Compose
 
-Backend: Node.js con Express y Mongoose.
+## 🔐 Seguridad
 
-Base de Datos: MongoDB.
+- **Autenticación JWT**: Tokens para autenticación y autorización
+- **Contraseñas**: Hashing con bcryptjs
+- **Rutas Protegidas**: Middleware authJWT.js
+- **CORS**: Configurado para localhost:5173
+- **Validación**: Prevención de inyecciones y XSS
 
-Contenerización: Docker y Docker Compose.
+## 📡 API REST Propia
 
-1. Mecanismos de Seguridad
+Endpoints protegidos con JWT en `/api/items`:
 
-Autenticación y Autorización: Implementada con JSON Web Tokens (JWT).
+- `GET /api/items` - Listar items del usuario
+- `POST /api/items` - Crear nuevo item
+- `PUT /api/items/:id` - Actualizar item
+- `DELETE /api/items/:id` - Eliminar item
 
-Contraseñas Seguras: Hashing de contraseñas usando bcryptjs.
+## 🌐 API Externa
 
-Rutas Protegidas: El middleware authJWT.js protege las rutas que requieren autenticación.
+Consumo de API pública a través de proxy en `/api/external/random-api` (con fallback a datos de ejemplo si falla la conexión).
 
-CORS: Configuración de CORS en el backend para permitir peticiones solo desde el origen del frontend (http://localhost:5173).
+## 🐳 Instalación y Ejecución
 
-Validación y Sanitización: Validación básica de entradas en los controladores para prevenir inyecciones y sanitización simple contra XSS.
+### Prerrequisitos
+- Docker y Docker Compose instalados
+- Puertos 5173, 5001 y 27017 disponibles
 
-2. Web Services Propios (API REST)
+### Pasos
 
-El backend expone una API REST (/api/items) para operaciones CRUD sobre "Items". Todas estas rutas están protegidas y requieren un JWT válido.
-
-GET /api/items: Obtiene todos los items del usuario autenticado.
-
-POST /api/items: Crea un nuevo item para el usuario autenticado.
-
-PUT /api/items/:id: Actualiza un item (solo si el usuario es el propietario).
-
-DELETE /api/items/:id: Borra un item (solo si el usuario es el propietario).
-
-3. Web Services de Terceros
-
-Se consume una API pública externa (https://api.publicapis.org/random) a través de una ruta proxy en el backend (/api/external/random-api). Esto oculta la llamada directa desde el frontend.
-
-🐳 Cómo Ejecutar (con Docker)
-
-Sigue estos pasos para construir e iniciar toda la aplicación (Frontend, Backend y Base de Datos) usando Docker Compose.
-
-Prerrequisitos
-
-Tener Docker y Docker Compose instalados.
-
-1. Clonar el Repositorio
-
-git clone [https://github.com/Lizeth290/ClaudializethcarmonasuarezSHU3](https://github.com/Lizeth290/ClaudializethcarmonasuarezSHU3)
+1. **Clonar el repositorio**
+```bash
+git clone https://github.com/Lizeth290/ClaudializethcarmonasuarezSHU3
 cd ClaudializethcarmonasuarezSHU3
+```
 
-
-2. Construir e Iniciar los Contenedores
-
-Este comando construirá las imágenes de frontend y backend (si no existen) y luego iniciará los tres servicios (frontend, backend, db).
-
+2. **Iniciar la aplicación**
+```bash
 docker-compose up --build
+```
 
+3. **Acceder a la aplicación**
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:5001/api
+- MongoDB: localhost:27017
 
-La aplicación estará disponible en:
-
-Frontend (Aplicación Web): http://localhost:5173
-
-Backend (API): http://localhost:5001/api
-
-3. Detener la Aplicación
-
-Para detener y eliminar los contenedores, ejecuta:
-
+4. **Detener la aplicación**
+```bash
 docker-compose down
+```
 
+## �️ Stack Teacnológico
 
-Proyecto desarrollado por Claudia Lizeth Carmona Suarez.
+**Frontend**
+- React 18 + Vite
+- Tailwind CSS
+- React Router DOM
+- Axios
+
+**Backend**
+- Node.js + Express
+- MongoDB 4.4 + Mongoose
+- JWT + bcryptjs
+- express-async-handler
+
+**DevOps**
+- Docker + Docker Compose
+- Nodemon (Hot Reload)
+
+## 📁 Estructura del Proyecto
+
+```
+├── backend/
+│   ├── src/
+│   │   ├── config/         # Configuración DB
+│   │   ├── controllers/    # Lógica de negocio
+│   │   ├── middleware/     # Auth y errores
+│   │   ├── models/         # Modelos Mongoose
+│   │   └── routes/         # Rutas API
+│   └── Dockerfile
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx         # Componente principal
+│   │   └── main.jsx
+│   └── Dockerfile
+└── docker-compose.yml
+```
+
+## 🔧 Comandos Útiles
+
+```bash
+# Ver logs
+docker logs shu3-backend
+docker logs shu3-frontend
+
+# Reiniciar servicio
+docker restart shu3-backend
+
+# Acceder a MongoDB
+docker exec -it shu3-mongo-db mongosh
+```
+
+## 📝 Notas
+
+- MongoDB 4.4 (compatible con CPUs sin AVX)
+- Hot reload automático en desarrollo
+- Datos persistentes en volúmenes Docker
+- Fallback a datos de ejemplo si falla API externa
+- Reintentos automáticos de conexión a MongoDB
+
+---
+
+**Desarrollado por**: Claudia Lizeth Carmona Suarez  
+**Proyecto**: SHU3 - Seguridad, Docker y Web Services
