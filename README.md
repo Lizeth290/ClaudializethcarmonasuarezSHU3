@@ -4,41 +4,52 @@ Aplicación web FullStack desarrollada con stack MERN (MongoDB, Express, React, 
 
 **Repositorio**: https://github.com/Lizeth290/ClaudializethcarmonasuarezSHU3
 
-## 🚀 Características
+## 🚀 Características Principales
 
-- **Frontend**: React + Vite + Tailwind CSS
+- **Frontend**: React 18 + Vite + Tailwind CSS
 - **Backend**: Node.js + Express + Mongoose
 - **Base de Datos**: MongoDB 4.4
 - **Contenerización**: Docker Compose
+- **Autenticación**: JWT (JSON Web Tokens)
+- **Seguridad**: Hashing de contraseñas con bcryptjs
 
-## 🔐 Seguridad
+## 🔐 Seguridad Implementada
 
-- **Autenticación JWT**: Tokens para autenticación y autorización
-- **Contraseñas**: Hashing con bcryptjs
-- **Rutas Protegidas**: Middleware authJWT.js
-- **CORS**: Configurado para localhost:5173
-- **Validación**: Prevención de inyecciones y XSS
+- **Autenticación JWT**: Sistema completo de tokens para autenticación y autorización
+- **Contraseñas Seguras**: Hashing con bcryptjs antes de almacenar
+- **Rutas Protegidas**: Middleware `authJWT.js` valida tokens en rutas privadas
+- **CORS Configurado**: Solo permite peticiones desde `http://localhost:5173`
+- **Validación de Datos**: Prevención de inyecciones SQL/NoSQL y XSS
 
 ## 📡 API REST Propia
 
-Endpoints protegidos con JWT en `/api/items`:
+El backend expone una API REST completa para gestión de items. Todos los endpoints están protegidos con JWT:
 
-- `GET /api/items` - Listar items del usuario
-- `POST /api/items` - Crear nuevo item
-- `PUT /api/items/:id` - Actualizar item
-- `DELETE /api/items/:id` - Eliminar item
+### Endpoints de Autenticación
+- `POST /api/users/register` - Registro de nuevos usuarios
+- `POST /api/users/login` - Inicio de sesión
+- `GET /api/users/profile` - Obtener perfil del usuario (protegida)
 
-## 🌐 API Externa
+### Endpoints de Items (CRUD)
+- `GET /api/items` - Listar todos los items del usuario autenticado
+- `POST /api/items` - Crear un nuevo item
+- `PUT /api/items/:id` - Actualizar un item existente
+- `DELETE /api/items/:id` - Eliminar un item
 
-Consumo de API pública a través de proxy en `/api/external/random-api` (con fallback a datos de ejemplo si falla la conexión).
+## 🌐 Consumo de API Externa
+
+- **Endpoint**: `GET /api/external/random-api`
+- **Fuente**: https://api.publicapis.org/random
+- **Implementación**: Proxy en el backend para ocultar llamadas directas
+- **Fallback**: Datos de ejemplo si la API externa no está disponible
 
 ## 🐳 Instalación y Ejecución
 
 ### Prerrequisitos
 - Docker y Docker Compose instalados
-- Puertos 5173, 5001 y 27017 disponibles
+- Puertos disponibles: 5173 (frontend), 5001 (backend), 27017 (MongoDB)
 
-### Pasos
+### Pasos de Instalación
 
 1. **Clonar el repositorio**
 ```bash
@@ -46,81 +57,157 @@ git clone https://github.com/Lizeth290/ClaudializethcarmonasuarezSHU3
 cd ClaudializethcarmonasuarezSHU3
 ```
 
-2. **Iniciar la aplicación**
+2. **Iniciar la aplicación con Docker**
 ```bash
 docker-compose up --build
 ```
 
 3. **Acceder a la aplicación**
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:5001/api
-- MongoDB: localhost:27017
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:5001/api
+- **MongoDB**: localhost:27017
 
 4. **Detener la aplicación**
 ```bash
 docker-compose down
 ```
 
-## �️ Stack Teacnológico
+## 🛠️ Stack Tecnológico
 
-**Frontend**
-- React 18 + Vite
-- Tailwind CSS
-- React Router DOM
-- Axios
+### Frontend
+- React 18.3.1
+- Vite 5.3.1
+- Tailwind CSS 3.4.4
+- React Router DOM 6.23.1
+- Axios 1.7.2
 
-**Backend**
-- Node.js + Express
-- MongoDB 4.4 + Mongoose
-- JWT + bcryptjs
-- express-async-handler
+### Backend
+- Node.js 18
+- Express 4.19.2
+- MongoDB 4.4
+- Mongoose 8.4.3
+- jsonwebtoken 9.0.2
+- bcryptjs 2.4.3
+- express-async-handler 1.2.0
 
-**DevOps**
+### DevOps
 - Docker + Docker Compose
-- Nodemon (Hot Reload)
+- Nodemon 3.1.4 (Hot Reload en desarrollo)
+- Volúmenes persistentes para MongoDB
 
 ## 📁 Estructura del Proyecto
 
 ```
+ClaudializethcarmonasuarezSHU3/
 ├── backend/
 │   ├── src/
-│   │   ├── config/         # Configuración DB
-│   │   ├── controllers/    # Lógica de negocio
-│   │   ├── middleware/     # Auth y errores
-│   │   ├── models/         # Modelos Mongoose
-│   │   └── routes/         # Rutas API
-│   └── Dockerfile
+│   │   ├── config/
+│   │   │   └── db.js                    # Conexión a MongoDB con reintentos
+│   │   ├── controllers/
+│   │   │   ├── auth.controller.js       # Registro, login, perfil
+│   │   │   ├── crud.controller.js       # CRUD de items
+│   │   │   └── external.controller.js   # Consumo de API externa
+│   │   ├── middleware/
+│   │   │   ├── authJWT.js              # Verificación de tokens JWT
+│   │   │   └── errorHandler.js         # Manejo de errores
+│   │   ├── models/
+│   │   │   ├── user.model.js           # Modelo de usuarios
+│   │   │   └── item.model.js           # Modelo de items
+│   │   ├── routes/
+│   │   │   ├── authRoutes.js           # Rutas de autenticación
+│   │   │   ├── itemRoutes.js           # Rutas de items
+│   │   │   └── externalRoutes.js       # Rutas de API externa
+│   │   └── index.js                     # Punto de entrada del servidor
+│   ├── .env.example                     # Variables de entorno de ejemplo
+│   ├── Dockerfile
+│   └── package.json
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx         # Componente principal
-│   │   └── main.jsx
-│   └── Dockerfile
-└── docker-compose.yml
+│   │   ├── App.jsx                      # Componente principal
+│   │   ├── main.jsx                     # Punto de entrada
+│   │   └── index.css                    # Estilos globales
+│   ├── index.html
+│   ├── Dockerfile
+│   ├── vite.config.js                   # Configuración de Vite
+│   ├── tailwind.config.js               # Configuración de Tailwind
+│   └── package.json
+├── docker-compose.yml                    # Orquestación de servicios
+└── README.md
 ```
 
 ## 🔧 Comandos Útiles
 
+### Ver logs de los servicios
 ```bash
-# Ver logs
 docker logs shu3-backend
 docker logs shu3-frontend
+docker logs shu3-mongo-db
+```
 
-# Reiniciar servicio
+### Reiniciar un servicio específico
+```bash
 docker restart shu3-backend
+docker restart shu3-frontend
+```
 
-# Acceder a MongoDB
+### Acceder a MongoDB
+```bash
 docker exec -it shu3-mongo-db mongosh
 ```
 
-## 📝 Notas
+### Ver contenedores en ejecución
+```bash
+docker ps
+```
 
-- MongoDB 4.4 (compatible con CPUs sin AVX)
-- Hot reload automático en desarrollo
-- Datos persistentes en volúmenes Docker
-- Fallback a datos de ejemplo si falla API externa
-- Reintentos automáticos de conexión a MongoDB
+## 💡 Uso de la Aplicación
+
+1. **Registro**: Crea una cuenta con usuario y contraseña
+2. **Login**: Inicia sesión para obtener un token JWT
+3. **Dashboard**: Gestiona tus items (crear, listar, eliminar)
+4. **API Externa**: Explora APIs públicas disponibles
+
+## 📝 Notas Importantes
+
+- **MongoDB 4.4**: Versión compatible con CPUs sin soporte AVX (cambiado de `mongo:latest`)
+- **Hot Reload**: Los cambios en el código se reflejan automáticamente con nodemon
+- **Persistencia**: Los datos se mantienen en volúmenes Docker (`mongo-data`)
+- **Reintentos de Conexión**: El backend reintenta conectarse a MongoDB hasta 5 veces
+- **API Externa**: Si falla la conexión, se muestran datos de ejemplo automáticamente
+
+## 🔒 Variables de Entorno
+
+El archivo `.env.example` en el backend contiene:
+
+```env
+PORT=5001
+MONGO_URI=mongodb://db:27017/shu3-app
+JWT_SECRET=unsecretojwtmuydificildeadivinar123!
+EXTERNAL_API_URL=https://api.publicapis.org/random
+```
+
+## 🚀 Características Técnicas
+
+- ✅ Arquitectura REST API
+- ✅ Autenticación y autorización con JWT
+- ✅ CRUD completo con MongoDB
+- ✅ Middleware de protección de rutas
+- ✅ Manejo centralizado de errores
+- ✅ Validación de datos
+- ✅ CORS configurado
+- ✅ Hot reload en desarrollo
+- ✅ Contenerización con Docker
+- ✅ Persistencia de datos
+
+## 📚 Documentación Adicional
+
+Para más información sobre el proyecto, consulta:
+- Código fuente en el repositorio
+- Comentarios en los archivos de código
+- Variables de entorno en `.env.example`
 
 ---
 
-**Desarrollado por**: Claudia Lizeth Carmona Suarez  
-**Proyecto**: SHU3 - Seguridad, Docker y Web Services
+**Proyecto**: SHU3 - Seguridad, Docker y Web Services  
+**Institución**: Universidad  
+**Fecha**: Noviembre 2025
