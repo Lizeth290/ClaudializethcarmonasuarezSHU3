@@ -5,6 +5,7 @@ import {
   getUserProfile,
 } from '../controllers/auth.controller.js';
 import { protect } from '../middleware/authJWT.js'; // Importamos nuestro "guardia"
+import { googleLogin } from '../controllers/google.controller.js';
 
 const router = express.Router();
 
@@ -13,6 +14,8 @@ const router = express.Router();
 router.post('/register', registerUser);
 // POST /api/users/login
 router.post('/login', loginUser);
+
+router.post('/google', googleLogin);
 
 // --- Ruta Privada ---
 // GET /api/users/profile

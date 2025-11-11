@@ -1,6 +1,7 @@
 import React, {
   useState,
   useEffect,
+  useRef,          // <-- FALTA
   createContext,
   useContext,
 } from 'react';
@@ -14,6 +15,7 @@ import {
   Outlet,
 } from 'react-router-dom';
 import axios from 'axios';
+import GoogleLoginButton from './components/GoogleLoginButton';
 
 // --- 1. CONTEXTO DE AUTENTICACIÓN ---
 const AuthContext = createContext(null);
@@ -61,6 +63,15 @@ const AuthProvider = ({ children }) => {
     return res.data;
   };
 
+  const loginWithGoogle = async (credential) => {
+    const res = await axios.post('/api/users/google', { credential });
+    localStorage.setItem('token', res.data.token);
+    setToken(res.data.token);
+    setUser(res.data);
+    return res.data;
+  };
+
+
   const logout = () => {
     localStorage.removeItem('token');
     setToken(null);
@@ -72,6 +83,7 @@ const AuthProvider = ({ children }) => {
     token,
     login,
     register,
+    loginWithGoogle,
     logout,
     isAuthenticated: !!user,
   };
@@ -118,19 +130,6 @@ function Layout() {
                       to="/dashboard"
                       className="text-gray-300 hover:bg-blue-600/20 hover:text-blue-300 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-1"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                      </svg>
-                      <span>Recursos TI</span>
-                    </Link>
-                    <Link
-                      to="/external-api"
-                      className="text-gray-300 hover:bg-blue-600/20 hover:text-blue-300 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-1"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                      </svg>
-                      <span>APIs Públicas</span>
                     </Link>
                   </div>
                 </div>
@@ -180,14 +179,49 @@ function ProtectedRoute({ children }) {
 }
 
 // --- 3. PÁGINAS ---
-function LoginPage() {
+  function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { login, register } = useAuth();
+  const { login, register, loginWithGoogle } = useAuth(); // <-- usa loginWithGoogle
   const navigate = useNavigate();
+
+  // --- Google Button ---
+  const googleDivRef = useRef(null);
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      /* global google */
+      window.google?.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        callback: async (resp) => {
+          try {
+            await loginWithGoogle(resp.credential); // verifica en tu backend y guarda tu JWT
+            navigate('/dashboard');
+          } catch (err) {
+            setError(err.response?.data?.message || 'Error con Google Sign-In');
+          }
+        },
+      });
+      window.google?.accounts.id.renderButton(googleDivRef.current, {
+        theme: 'outline',
+        size: 'large',
+        shape: 'rectangular',
+        width: 320,
+      });
+      // (opcional) One-tap:
+      // window.google?.accounts.id.prompt();
+    };
+    document.body.appendChild(script);
+    return () => {
+      if (script && script.parentNode) script.parentNode.removeChild(script);
+    };
+  }, [loginWithGoogle, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -210,33 +244,19 @@ function LoginPage() {
   return (
     <div className="flex justify-center items-center min-h-screen px-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="bg-blue-600/20 p-4 rounded-2xl">
-              <svg className="w-16 h-16 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-            </div>
-          </div>
-          <h2 className="text-3xl font-bold text-white mb-2">
-            {isLogin ? 'Bienvenido' : 'Crear Cuenta'}
-          </h2>
-          <p className="text-gray-400">
-            {isLogin ? 'Accede a tu sistema de gestión TI' : 'Registra tu cuenta de administrador'}
-          </p>
-        </div>
-        
+        {/* ...tu encabezado tal cual... */}
+
         <div className="bg-slate-800/50 backdrop-blur-sm p-8 space-y-6 shadow-2xl rounded-2xl border border-blue-500/20">
           {error && (
             <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg flex items-center space-x-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              {/* ...icono... */}
               <span>{error}</span>
             </div>
           )}
+
+          {/* Form usuario/contraseña */}
           <form className="space-y-5" onSubmit={handleSubmit}>
-            <div>
+                      <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
                 Usuario
               </label>
@@ -281,21 +301,25 @@ function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-blue-500/30"
+              className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-lg font-medium disabled:opacity-50 transition-all duration-200 shadow-lg shadow-blue-500/30"
             >
-              {loading ? (
-                <span className="flex items-center justify-center space-x-2">
-                  <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <span>Procesando...</span>
-                </span>
-              ) : (
-                isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'
-              )}
+              {loading ? 'Procesando...' : (isLogin ? 'Iniciar Sesión' : 'Crear Cuenta')}
             </button>
           </form>
+
+          {/* separador */}
+          <div className="flex items-center my-2">
+            <div className="flex-1 h-px bg-slate-700" />
+            <span className="px-3 text-xs text-gray-400">o</span>
+            <div className="flex-1 h-px bg-slate-700" />
+          </div>
+
+          {/* Botón de Google */}
+          <div className="flex justify-center">
+            <div ref={googleDivRef} />
+          </div>
+
+          {/* switch login/registro */}
           <div className="text-center">
             <p className="text-gray-400 text-sm">
               {isLogin ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
@@ -530,155 +554,6 @@ function DashboardPage() {
   );
 }
 
-function ExternalApiPage() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await axios.get('/api/external/random-api');
-      setData(res.data.entries[0]);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Error al cargar API externa');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-bold text-white flex items-center space-x-3">
-            <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-            </svg>
-            <span>APIs Públicas para Desarrollo</span>
-          </h2>
-          <p className="text-gray-400 mt-2">Descubre APIs útiles para tus proyectos</p>
-        </div>
-        <button
-          onClick={fetchData}
-          disabled={loading}
-          className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-lg shadow-blue-500/30 flex items-center space-x-2 disabled:opacity-50"
-        >
-          <svg className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          <span>Nueva API</span>
-        </button>
-      </div>
-
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg flex items-center space-x-2">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span>{error}</span>
-        </div>
-      )}
-
-      <div className="bg-slate-800/50 backdrop-blur-sm shadow-xl rounded-xl p-8 border border-blue-500/20">
-        {loading ? (
-          <div className="flex flex-col justify-center items-center py-16">
-            <svg className="animate-spin h-12 w-12 text-blue-400 mb-4" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p className="text-gray-400">Cargando información de API...</p>
-          </div>
-        ) : data ? (
-          <div className="space-y-6">
-            <div className="flex items-start space-x-4">
-              <div className="bg-gradient-to-br from-blue-600 to-cyan-600 p-4 rounded-xl">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-3xl font-bold text-white mb-2">{data.API}</h3>
-                <div className="flex items-center space-x-3">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-600/20 text-blue-400 border border-blue-500/30">
-                    {data.Category}
-                  </span>
-                  {data.HTTPS && (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-600/20 text-green-400 border border-green-500/30">
-                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                      </svg>
-                      HTTPS
-                    </span>
-                  )}
-                  {data.Cors === 'yes' && (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-600/20 text-purple-400 border border-purple-500/30">
-                      CORS Enabled
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-700">
-              <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Descripción</h4>
-              <p className="text-gray-300 text-lg leading-relaxed">{data.Description}</p>
-            </div>
-
-            {data.Auth && (
-              <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-700">
-                <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Autenticación</h4>
-                <p className="text-gray-300">{data.Auth}</p>
-              </div>
-            )}
-
-            <div className="flex space-x-4">
-              <a
-                href={data.Link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-lg shadow-blue-500/30 flex items-center justify-center space-x-2"
-              >
-                <span>Visitar Documentación</span>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </a>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <svg className="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p className="text-gray-400">No se pudo cargar la información</p>
-          </div>
-        )}
-      </div>
-
-      <div className="bg-blue-600/10 border border-blue-500/30 rounded-xl p-6">
-        <div className="flex items-start space-x-3">
-          <svg className="w-6 h-6 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <div>
-            <h4 className="text-blue-300 font-semibold mb-1">Información</h4>
-            <p className="text-gray-400 text-sm">
-              Esta sección consume un servicio web externo que proporciona información sobre APIs públicas disponibles para desarrollo. 
-              Haz clic en "Nueva API" para descubrir más opciones.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // --- 4. APLICACIÓN PRINCIPAL ---
 function App() {
   return (
@@ -689,10 +564,6 @@ function App() {
             <Route
               path="dashboard"
               element={<ProtectedRoute><DashboardPage /></ProtectedRoute>}
-            />
-            <Route
-              path="external-api"
-              element={<ProtectedRoute><ExternalApiPage /></ProtectedRoute>}
             />
             <Route index element={<Navigate to="/dashboard" replace />} />
           </Route>

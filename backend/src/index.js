@@ -7,7 +7,6 @@ import { errorHandler, notFound } from './middleware/errorHandler.js';
 // Importar rutas
 import authRoutes from './routes/authRoutes.js';
 import itemRoutes from './routes/itemRoutes.js';
-import externalRoutes from './routes/externalRoutes.js';
 
 // Configuración inicial
 dotenv.config();
@@ -33,9 +32,6 @@ app.use('/api/users', authRoutes);
 
 // Rutas de items (CRUD)
 app.use('/api/items', itemRoutes);
-
-// Rutas de API externa
-app.use('/api/external', externalRoutes);
 
 
 // Middlewares de manejo de errores (DEBEN IR AL FINAL)

@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import User from '../models/user.model.js';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
 
 // --- Función Auxiliar ---
 // Genera un token JWT firmado con el ID del usuario
