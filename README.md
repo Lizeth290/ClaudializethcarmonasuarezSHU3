@@ -38,10 +38,10 @@ El backend expone una API REST completa para gestión de items. Todos los endpoi
 
 ## 🌐 Consumo de API Externa
 
-- **Endpoint**: `GET /api/external/random-api`
-- **Fuente**: https://api.publicapis.org/random
-- **Implementación**: Proxy en el backend para ocultar llamadas directas
-- **Fallback**: Datos de ejemplo si la API externa no está disponible
+- **Endpoint**: `POST /api/users/google`
+- **Fuente**: https://accounts.google.com/gsi/client
+- **Implementación**: Validación del token desde el backend mediante google-auth-library, actuando como proxy seguro entre el cliente y Google.
+- **Fallback**: Manejo de errores y uso de datos simulados si el servicio externo falla.
 
 ## 🐳 Instalación y Ejecución
 
@@ -59,7 +59,7 @@ cd ClaudializethcarmonasuarezSHU3
 
 2. **Iniciar la aplicación con Docker**
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
 3. **Acceder a la aplicación**
@@ -69,7 +69,7 @@ docker-compose up --build
 
 4. **Detener la aplicación**
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ## 🛠️ Stack Tecnológico
@@ -106,7 +106,7 @@ ClaudializethcarmonasuarezSHU3/
 │   │   ├── controllers/
 │   │   │   ├── auth.controller.js       # Registro, login, perfil
 │   │   │   ├── crud.controller.js       # CRUD de items
-│   │   │   └── external.controller.js   # Consumo de API externa
+│   │   │   └── google.controller.js     # Consumo de API externa
 │   │   ├── middleware/
 │   │   │   ├── authJWT.js              # Verificación de tokens JWT
 │   │   │   └── errorHandler.js         # Manejo de errores
@@ -115,8 +115,7 @@ ClaudializethcarmonasuarezSHU3/
 │   │   │   └── item.model.js           # Modelo de items
 │   │   ├── routes/
 │   │   │   ├── authRoutes.js           # Rutas de autenticación
-│   │   │   ├── itemRoutes.js           # Rutas de items
-│   │   │   └── externalRoutes.js       # Rutas de API externa
+│   │   │   └── itemRoutes.js           # Rutas de items
 │   │   └── index.js                     # Punto de entrada del servidor
 │   ├── .env.example                     # Variables de entorno de ejemplo
 │   ├── Dockerfile
@@ -135,37 +134,12 @@ ClaudializethcarmonasuarezSHU3/
 └── README.md
 ```
 
-## 🔧 Comandos Útiles
-
-### Ver logs de los servicios
-```bash
-docker logs shu3-backend
-docker logs shu3-frontend
-docker logs shu3-mongo-db
-```
-
-### Reiniciar un servicio específico
-```bash
-docker restart shu3-backend
-docker restart shu3-frontend
-```
-
-### Acceder a MongoDB
-```bash
-docker exec -it shu3-mongo-db mongosh
-```
-
-### Ver contenedores en ejecución
-```bash
-docker ps
-```
-
 ## 💡 Uso de la Aplicación
 
 1. **Registro**: Crea una cuenta con usuario y contraseña
 2. **Login**: Inicia sesión para obtener un token JWT
 3. **Dashboard**: Gestiona tus items (crear, listar, eliminar)
-4. **API Externa**: Explora APIs públicas disponibles
+4. **API Externa**: Inicia Sesión con tu cuenta de google
 
 ## 📝 Notas Importantes
 
@@ -183,13 +157,14 @@ El archivo `.env.example` en el backend contiene:
 PORT=5001
 MONGO_URI=mongodb://db:27017/shu3-app
 JWT_SECRET=unsecretojwtmuydificildeadivinar123!
-EXTERNAL_API_URL=https://api.publicapis.org/random
+GOOGLE_CLIENT_ID=Clave
 ```
 
 ## 🚀 Características Técnicas
 
 - ✅ Arquitectura REST API
 - ✅ Autenticación y autorización con JWT
+- ✅ Autenticación y autorización con Google
 - ✅ CRUD completo con MongoDB
 - ✅ Middleware de protección de rutas
 - ✅ Manejo centralizado de errores
@@ -201,13 +176,5 @@ EXTERNAL_API_URL=https://api.publicapis.org/random
 
 ## 📚 Documentación Adicional
 
-Para más información sobre el proyecto, consulta:
-- Código fuente en el repositorio
-- Comentarios en los archivos de código
-- Variables de entorno en `.env.example`
-
----
-
 **Proyecto**: SHU3 - Seguridad, Docker y Web Services  
-**Institución**: Universidad  
 **Fecha**: Noviembre 2025
