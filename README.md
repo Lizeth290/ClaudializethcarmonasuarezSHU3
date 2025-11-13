@@ -147,7 +147,6 @@ ClaudializethcarmonasuarezSHU3/
 - **Hot Reload**: Los cambios en el código se reflejan automáticamente con nodemon
 - **Persistencia**: Los datos se mantienen en volúmenes Docker (`mongo-data`)
 - **Reintentos de Conexión**: El backend reintenta conectarse a MongoDB hasta 5 veces
-- **API Externa**: Si falla la conexión, se muestran datos de ejemplo automáticamente
 
 ## 🔒 Variables de Entorno
 
